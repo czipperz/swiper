@@ -1588,14 +1588,29 @@ When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
             :keymap counsel-find-file-map
             :caller 'counsel-find-file))
 
+(defvar counsel-up-directory-level t
+  "Control whether `counsel-up-directory' goes up a level or always a directory.
+
+If non-nil, then `counsel-up-directory' will remove the final level of the path.
+For example: /a/long/path/file.jpg => /a/long/path/
+             /a/long/path/     =>     /a/long/
+
+If nil, then `counsel-up-directory' will go up a directory.
+For example: /a/long/path/file.jpg => /a/long/
+             /a/long/path/     =>     /a/long/")
+
 (defun counsel-up-directory ()
-  "Go to the parent directory preselecting the current one."
+  "Go to the parent directory preselecting the current one.
+
+See variable `counsel-up-directory-level'."
   (interactive)
-  (let ((dir-file-name
-         (directory-file-name (expand-file-name ivy--directory))))
-    (ivy--cd (file-name-directory dir-file-name))
-    (setf (ivy-state-preselect ivy-last)
-          (file-name-as-directory (file-name-nondirectory dir-file-name)))))
+  (if (and counsel-up-directory-level (not (string-empty-p ivy-text)))
+      (delete-region (line-beginning-position) (line-end-position))
+    (let ((dir-file-name
+           (directory-file-name (expand-file-name ivy--directory))))
+      (ivy--cd (file-name-directory dir-file-name))
+      (setf (ivy-state-preselect ivy-last)
+            (file-name-as-directory (file-name-nondirectory dir-file-name))))))
 
 (defun counsel-at-git-issue-p ()
   "When point is at an issue in a Git-versioned file, return the issue string."
